@@ -1,0 +1,4 @@
+{
+"personas": "http://localhost:4202/remoteEntry.json",
+"productos": "http://localhost:4203/remoteEntry.json"
+}

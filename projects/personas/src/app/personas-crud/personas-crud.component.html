@@ -1,0 +1,80 @@
+<div class="personas-container">
+  <h2>Gestión de Personas</h2>
+  
+
+  <div *ngIf="apiMessage" [ngClass]="{
+    'message-error': apiMessage.includes('Error'),
+    'message-success': !apiMessage.includes('Error')
+  }">
+    {{ apiMessage }}
+  </div>
+
+ 
+  <div class="form-section">
+    <h3>Agregar Nueva Persona</h3>
+    <div class="form-group">
+      <input 
+        [(ngModel)]="newPersonName" 
+        placeholder="Nombres"
+        class="input-field"
+      />
+      <input 
+        [(ngModel)]="newPersonEmail" 
+        placeholder="Correo electrónico"
+        class="input-field"
+        type="email"
+      />
+      <button (click)="agregarPersona()" class="btn btn-primary">Guardar Nueva Persona</button>
+    </div>
+  </div>
+
+  <!-- Lista de personas -->
+  <div class="list-section">
+    <h3>Lista de Personas</h3>
+    <div *ngIf="persons.length === 0" class="empty-state">
+      No hay personas registradas.
+    </div>
+    <table *ngIf="persons.length > 0" class="personas-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Correo Electrónico</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let person of persons" [class.editing]="editingId === person.id">
+          <td>{{ person.id }}</td>
+          <td>
+            <span *ngIf="editingId !== person.id">{{ person.nombre }}</span>
+            <input 
+              *ngIf="editingId === person.id" 
+              [(ngModel)]="editingName" 
+              class="input-field"
+            />
+          </td>
+          <td>
+            <span *ngIf="editingId !== person.id">{{ person.email }}</span>
+            <input 
+              *ngIf="editingId === person.id" 
+              [(ngModel)]="editingEmail" 
+              class="input-field"
+              type="email"
+            />
+          </td>
+          <td class="actions">
+            <ng-container *ngIf="editingId !== person.id">
+              <button (click)="iniciarEdicion(person)" class="btn btn-warning">Editar</button>
+              <button (click)="eliminarPersona(person.id)" class="btn btn-danger">Eliminar</button>
+            </ng-container>
+            <ng-container *ngIf="editingId === person.id">
+              <button (click)="guardarEdicion()" class="btn btn-success">Guardar</button>
+              <button (click)="cancelarEdicion()" class="btn btn-secondary">Cancelar</button>
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

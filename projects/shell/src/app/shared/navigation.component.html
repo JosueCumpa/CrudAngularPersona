@@ -1,0 +1,17 @@
+<section class="navigation">
+  <div class="nav-container">
+    <div class="brand">
+      <a href="/">CRUD</a>
+    </div>
+    <nav (click)="$event.stopPropagation()">
+      <div class="nav-mobile">
+        <a id="nav-toggle" (click)="toggleNav()" [class.active]="navOpen"><span>Open</span></a>
+      </div>
+      <ul class="nav-list" [class.open]="navOpen">
+        <li><a href="/personas">Personas</a></li>
+        <li><a href="/productos">Productos</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</section>
