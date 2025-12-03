@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -36,6 +36,12 @@ export class NavigationComponent implements OnInit {
 
   toggleNav() {
     this.navOpen = !this.navOpen;
+  }
+
+  onNavKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.navOpen) {
+      this.toggleNav();
+    }
   }
 
   setupNavigation() {

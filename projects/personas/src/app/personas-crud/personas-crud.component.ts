@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import validator from 'validator';
 import { PersonaService, Persona } from '../persona.service';
 
 @Component({
@@ -13,17 +14,17 @@ import { PersonaService, Persona } from '../persona.service';
 })
 export class PersonasCrudComponent implements OnInit {
   persons: Persona[] = [];
-  newPersonName: string = '';
-  newPersonEmail: string = '';
-  apiMessage: string = '';
+  newPersonName = '';
+  newPersonEmail = '';
+  apiMessage = '';
   editingId: number | null = null;
-  editingName: string = '';
-  editingEmail: string = '';
+  editingName = '';
+  editingEmail = '';
 
-  constructor(private personaService: PersonaService) {}
+  constructor(private readonly personaService: PersonaService) {}
 
-  ngOnInit(): void { 
-    this.listarPersonas(); 
+  ngOnInit(): void {
+    this.listarPersonas();
   }
 
   listarPersonas(): void {
@@ -32,7 +33,7 @@ export class PersonasCrudComponent implements OnInit {
         this.persons = data;
         this.limpiarMensaje();
       },
-      error: (err) => { 
+      error: (err) => {
         this.apiMessage = 'Error loading persons: ' + (err.error?.message || err.message);
         console.error('Error loading:', err);
       }
@@ -41,16 +42,16 @@ export class PersonasCrudComponent implements OnInit {
 
   agregarPersona(): void {
     if (!this.newPersonName.trim() || !this.newPersonEmail.trim()) {
-      this.apiMessage = 'Please fill in name and email.';
+      this.apiMessage = 'Porfavor ingrese un email.';
       return;
     }
     if (!this.esEmailValido(this.newPersonEmail)) {
-      this.apiMessage = 'Please enter a valid email.';
+      this.apiMessage = 'Ingrese un email valido.';
       return;
     }
-    const newPerson: Persona = { 
+    const newPerson: Persona = {
       nombre: this.newPersonName,
-      email: this.newPersonEmail 
+      email: this.newPersonEmail
     };
     this.personaService.create(newPerson).subscribe({
       next: (response: string) => {
@@ -59,7 +60,7 @@ export class PersonasCrudComponent implements OnInit {
         this.newPersonEmail = '';
         setTimeout(() => this.listarPersonas(), 500);
       },
-      error: (err) => { 
+      error: (err) => {
         this.apiMessage = err.error || 'Error al crear persona';
         console.error('Error creating:', err);
       }
@@ -79,17 +80,17 @@ export class PersonasCrudComponent implements OnInit {
 
   guardarEdicion(): void {
     if (!this.editingName.trim() || !this.editingEmail.trim() || this.editingId === null) {
-      this.apiMessage = 'Please fill in name and email.';
+      this.apiMessage = 'Ingrese un correo.';
       return;
     }
     if (!this.esEmailValido(this.editingEmail)) {
-      this.apiMessage = 'Please enter a valid email.';
+      this.apiMessage = 'Ingrese un correo valido.';
       return;
     }
-    const updatedPerson: Persona = { 
-      id: this.editingId, 
+    const updatedPerson: Persona = {
+      id: this.editingId,
       nombre: this.editingName,
-      email: this.editingEmail 
+      email: this.editingEmail
     };
     this.personaService.update(this.editingId, updatedPerson).subscribe({
       next: (response: string) => {
@@ -99,7 +100,7 @@ export class PersonasCrudComponent implements OnInit {
         this.editingEmail = '';
         setTimeout(() => this.listarPersonas(), 500);
       },
-      error: (err) => { 
+      error: (err) => {
         this.apiMessage = err.error || 'Error al actualizar persona';
         console.error('Error updating:', err);
       }
@@ -113,7 +114,7 @@ export class PersonasCrudComponent implements OnInit {
         this.apiMessage = response;
         setTimeout(() => this.listarPersonas(), 500);
       },
-      error: (err) => { 
+      error: (err) => {
         this.apiMessage = err.error || 'Error al eliminar persona';
         console.error('Error deleting:', err);
       }
@@ -129,7 +130,47 @@ export class PersonasCrudComponent implements OnInit {
   }
 
   private esEmailValido(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    if (!email) {
+      return false;
+    }
+
+    // Mitigar ReDoS: checks lineales sin regex costosas
+    if (email.length > 254) {
+      return false;
+    }
+
+    if (/\s/.test(email)) {
+      return false;
+    }
+
+    const atIndex = email.indexOf('@');
+    if (atIndex <= 0 || atIndex !== email.lastIndexOf('@') || atIndex === email.length - 1) {
+      return false;
+    }
+
+    const local = email.slice(0, atIndex);
+    const domain = email.slice(atIndex + 1);
+
+    if (!domain.includes('.')) {
+      return false;
+    }
+
+    // Límites de partes comunes en emails
+    if (local.length > 64 || domain.length > 190) {
+      return false;
+    }
+
+    const domainLabels = domain.split('.');
+    if (domainLabels.some((label) => label.length === 0)) {
+      return false;
+    }
+
+    const tld = domainLabels.at(-1) ?? '';
+    if (tld.length < 2) {
+      return false;
+    }
+
+    // Librería robusta para validación sintáctica
+    return validator.isEmail(email, { allow_utf8_local_part: false });
   }
 }

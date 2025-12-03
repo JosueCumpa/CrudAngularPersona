@@ -3,7 +3,11 @@
     <div class="brand">
       <a href="/">CRUD</a>
     </div>
-    <nav (click)="$event.stopPropagation()">
+    <nav
+      (click)="$event.stopPropagation()"
+      (keydown)="onNavKeydown($event)"
+      aria-label="Navegación principal"
+    >
       <div class="nav-mobile">
         <a id="nav-toggle" (click)="toggleNav()" [class.active]="navOpen"><span>Open</span></a>
       </div>

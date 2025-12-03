@@ -1,23 +1,292 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { PersonasCrudComponent } from './personas-crud.component';
+import { PersonaService, Persona } from '../persona.service';
 
 describe('PersonasCrudComponent', () => {
   let component: PersonasCrudComponent;
   let fixture: ComponentFixture<PersonasCrudComponent>;
+  let personaService: PersonaService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PersonasCrudComponent]
-    })
-    .compileComponents();
+      imports: [PersonasCrudComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), PersonaService],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(PersonasCrudComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    personaService = TestBed.inject(PersonaService);
   });
 
-  it('should create', () => {
+  it('debe crear el componente', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('ngOnInit', () => {
+    it('debe llamar a listarPersonas en la inicialización', () => {
+      spyOn(component, 'listarPersonas');
+      component.ngOnInit();
+      expect(component.listarPersonas).toHaveBeenCalled();
+    });
+  });
+
+  describe('listarPersonas', () => {
+    it('debe cargar todas las personas', () => {
+      const mockPersonas: Persona[] = [
+        { id: 1, nombre: 'Juan', email: 'juan@example.com' },
+        { id: 2, nombre: 'María', email: 'maria@example.com' },
+      ];
+
+      spyOn(personaService, 'getAll').and.returnValue(of(mockPersonas));
+
+      component.listarPersonas();
+
+      expect(component.persons).toEqual(mockPersonas);
+      expect(personaService.getAll).toHaveBeenCalled();
+    });
+
+    it('debe manejar error al cargar personas', () => {
+      const error = { error: { message: 'Error del servidor' }, message: 'Http Error' };
+      spyOn(personaService, 'getAll').and.returnValue(throwError(() => error));
+
+      component.listarPersonas();
+
+      expect(component.apiMessage).toContain('Error loading persons');
+    });
+  });
+
+  describe('agregarPersona', () => {
+    it('no debe agregar persona si el nombre está vacío', () => {
+      component.newPersonName = '';
+      component.newPersonEmail = 'test@example.com';
+
+      component.agregarPersona();
+
+      expect(component.apiMessage).toContain('Porfavor ingrese');
+    });
+
+    it('no debe agregar persona si el correo está vacío', () => {
+      component.newPersonName = 'Test';
+      component.newPersonEmail = '';
+
+      component.agregarPersona();
+
+      expect(component.apiMessage).toContain('Porfavor ingrese');
+    });
+
+    it('no debe agregar persona si el correo es inválido', () => {
+      component.newPersonName = 'Test';
+      component.newPersonEmail = 'correo-invalido';
+
+      component.agregarPersona();
+
+      expect(component.apiMessage).toContain('email valido');
+    });
+
+    it('debe agregar persona con datos válidos', (done) => {
+      component.newPersonName = 'Carlos';
+      component.newPersonEmail = 'carlos@example.com';
+
+      const mockPersona: Persona = { nombre: 'Carlos', email: 'carlos@example.com' };
+      const response = 'Persona creada exitosamente';
+
+      spyOn(personaService, 'create').and.returnValue(of(response));
+      spyOn(component, 'listarPersonas');
+
+      component.agregarPersona();
+
+      expect(personaService.create).toHaveBeenCalledWith(mockPersona);
+      expect(component.newPersonName).toBe('');
+      expect(component.newPersonEmail).toBe('');
+
+      setTimeout(() => {
+        expect(component.listarPersonas).toHaveBeenCalled();
+        done();
+      }, 600);
+    });
+
+    it('debe manejar error al crear persona', () => {
+      component.newPersonName = 'Carlos';
+      component.newPersonEmail = 'carlos@example.com';
+
+      const error = { error: 'El correo ya existe' };
+      spyOn(personaService, 'create').and.returnValue(throwError(() => error));
+
+      component.agregarPersona();
+
+      expect(component.apiMessage).toBe('El correo ya existe');
+    });
+  });
+
+  describe('iniciarEdicion', () => {
+    it('debe establecer el estado de edición', () => {
+      const persona: Persona = { id: 1, nombre: 'Juan', email: 'juan@example.com' };
+
+      component.iniciarEdicion(persona);
+
+      expect(component.editingId).toBe(1);
+      expect(component.editingName).toBe('Juan');
+      expect(component.editingEmail).toBe('juan@example.com');
+    });
+  });
+
+  describe('cancelarEdicion', () => {
+    it('debe cancelar el estado de edición', () => {
+      component.editingId = 1;
+      component.editingName = 'test';
+
+      component.cancelarEdicion();
+
+      expect(component.editingId).toBeNull();
+      expect(component.editingName).toBe('');
+    });
+  });
+
+  describe('guardarEdicion', () => {
+    it('no debe guardar si el nombre está vacío', () => {
+      component.editingId = 1;
+      component.editingName = '';
+      component.editingEmail = 'test@example.com';
+
+      component.guardarEdicion();
+
+      expect(component.apiMessage).toContain('Ingrese un correo');
+    });
+
+    it('no debe guardar si el correo es inválido', () => {
+      component.editingId = 1;
+      component.editingName = 'Juan';
+      component.editingEmail = 'invalid-email';
+
+      component.guardarEdicion();
+
+      expect(component.apiMessage).toContain('correo valido');
+    });
+
+    it('debe guardar con datos válidos', (done) => {
+      component.editingId = 1;
+      component.editingName = 'Juan Actualizado';
+      component.editingEmail = 'juan.updated@example.com';
+
+      const updatedPersona: Persona = {
+        id: 1,
+        nombre: 'Juan Actualizado',
+        email: 'juan.updated@example.com',
+      };
+      const response = 'Persona actualizada exitosamente';
+
+      spyOn(personaService, 'update').and.returnValue(of(response));
+      spyOn(component, 'listarPersonas');
+
+      component.guardarEdicion();
+
+      expect(personaService.update).toHaveBeenCalledWith(1, updatedPersona);
+      expect(component.editingId).toBeNull();
+
+      setTimeout(() => {
+        expect(component.listarPersonas).toHaveBeenCalled();
+        done();
+      }, 600);
+    });
+  });
+
+  describe('eliminarPersona', () => {
+    it('no debe eliminar si el id es indefinido', () => {
+      spyOn(personaService, 'delete');
+
+      component.eliminarPersona(undefined);
+
+      expect(personaService.delete).not.toHaveBeenCalled();
+    });
+
+    it('no debe eliminar si el usuario cancela la confirmación', () => {
+      spyOn(globalThis, 'confirm').and.returnValue(false);
+      spyOn(personaService, 'delete');
+
+      component.eliminarPersona(1);
+
+      expect(personaService.delete).not.toHaveBeenCalled();
+    });
+
+    it('debe eliminar persona cuando se confirma', (done) => {
+      spyOn(globalThis, 'confirm').and.returnValue(true);
+      const response = 'Persona eliminada exitosamente';
+
+      spyOn(personaService, 'delete').and.returnValue(of(response));
+      spyOn(component, 'listarPersonas');
+
+      component.eliminarPersona(1);
+
+      expect(personaService.delete).toHaveBeenCalledWith(1);
+
+      setTimeout(() => {
+        expect(component.listarPersonas).toHaveBeenCalled();
+        done();
+      }, 600);
+    });
+
+    it('debe manejar error al eliminar persona', () => {
+      spyOn(globalThis, 'confirm').and.returnValue(true);
+      const error = { error: 'No se puede eliminar la persona' };
+
+      spyOn(personaService, 'delete').and.returnValue(throwError(() => error));
+
+      component.eliminarPersona(1);
+
+      expect(component.apiMessage).toBe('No se puede eliminar la persona');
+    });
+  });
+
+  describe('esEmailValido', () => {
+    it('debe validar correos correctos', () => {
+      expect((component as any).esEmailValido('test@example.com')).toBe(true);
+      expect((component as any).esEmailValido('user.name@domain.co.uk')).toBe(true);
+    });
+
+    it('debe rechazar correos inválidos básicos', () => {
+      expect((component as any).esEmailValido('invalido')).toBe(false);
+      expect((component as any).esEmailValido('invalido@')).toBe(false);
+      expect((component as any).esEmailValido('@example.com')).toBe(false);
+    });
+
+    it('debe rechazar correos con espacios o más de un @', () => {
+      expect((component as any).esEmailValido('con espacio@domain.com')).toBe(false);
+      expect((component as any).esEmailValido('uno@@dos.com')).toBe(false);
+    });
+
+    it('debe rechazar dominios sin punto, labels vacíos o TLD corto', () => {
+      expect((component as any).esEmailValido('user@dominio')).toBe(false);
+      expect((component as any).esEmailValido('user@dominio..com')).toBe(false);
+      expect((component as any).esEmailValido('user@dominio.c')).toBe(false);
+    });
+
+    it('debe rechazar cuando excede longitudes permitidas', () => {
+      const localLargo = `${'a'.repeat(65)}@dominio.com`;
+      const dominioLargo = `a@${'b'.repeat(191)}.com`;
+      const demasiadoLargo = `a@${'b'.repeat(255)}.com`;
+
+      expect((component as any).esEmailValido(localLargo)).toBe(false);
+      expect((component as any).esEmailValido(dominioLargo)).toBe(false);
+      expect((component as any).esEmailValido(demasiadoLargo)).toBe(false);
+    });
+  });
+
+  describe('limpiarMensaje', () => {
+    it('debe limpiar mensajes que no contienen "Error"', fakeAsync(() => {
+      component.apiMessage = 'Operación exitosa';
+      (component as any).limpiarMensaje();
+      tick(3100);
+      expect(component.apiMessage).toBe('');
+    }));
+
+    it('no debe limpiar mensajes de error', fakeAsync(() => {
+      component.apiMessage = 'Error al cargar';
+      (component as any).limpiarMensaje();
+      tick(3100);
+      expect(component.apiMessage).toBe('Error al cargar');
+    }));
   });
 });
