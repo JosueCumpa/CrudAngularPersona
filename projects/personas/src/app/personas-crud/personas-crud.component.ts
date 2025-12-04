@@ -1,4 +1,4 @@
-// projects/personas/src/app/personas-crud/personas-crud.component.ts
+﻿// projects/personas/src/app/personas-crud/personas-crud.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -114,7 +114,7 @@ export class PersonasCrudComponent implements OnInit {
   }
 
   eliminarPersona(id: number | undefined): void {
-    if (!id || !confirm('¿Estás seguro de que deseas eliminar esta persona?')) return;
+    if (!id || !confirm('Estas seguro de que deseas eliminar esta persona?')) return;
     this.personaService.delete(id).subscribe({
       next: () => {
         this.apiMessage = 'Persona eliminada correctamente';

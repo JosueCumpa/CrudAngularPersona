@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
@@ -26,7 +26,7 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('debe llamar a listarPersonas en la inicialización', () => {
+    it('debe llamar a listarPersonas en la inicializacion', () => {
       spyOn(component, 'listarPersonas');
       component.ngOnInit();
       expect(component.listarPersonas).toHaveBeenCalled();
@@ -67,7 +67,7 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('agregarPersona', () => {
-    it('no debe agregar persona si el nombre está vacío', () => {
+    it('no debe agregar persona si el nombre esta vacio', () => {
       component.newPersonName = '';
       component.newPersonEmail = 'test@example.com';
 
@@ -76,7 +76,7 @@ describe('PersonasCrudComponent', () => {
       expect(component.apiMessage).toContain('Porfavor ingrese');
     });
 
-    it('no debe agregar persona si el correo está vacío', () => {
+    it('no debe agregar persona si el correo esta vacio', () => {
       component.newPersonName = 'Test';
       component.newPersonEmail = '';
 
@@ -85,7 +85,7 @@ describe('PersonasCrudComponent', () => {
       expect(component.apiMessage).toContain('Porfavor ingrese');
     });
 
-    it('no debe agregar persona si el correo es inválido', () => {
+    it('no debe agregar persona si el correo es invalido', () => {
       component.newPersonName = 'Test';
       component.newPersonEmail = 'correo-invalido';
 
@@ -94,7 +94,7 @@ describe('PersonasCrudComponent', () => {
       expect(component.apiMessage).toContain('email valido');
     });
 
-    it('debe agregar persona con datos válidos', (done) => {
+    it('debe agregar persona con datos validos', (done) => {
       component.newPersonName = 'Carlos';
       component.newPersonEmail = 'carlos@example.com';
 
@@ -130,7 +130,7 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('iniciarEdicion', () => {
-    it('debe establecer el estado de edición', () => {
+    it('debe establecer el estado de edicion', () => {
       const persona: Persona = { id: 1, nombre: 'Juan', email: 'juan@example.com' };
 
       component.iniciarEdicion(persona);
@@ -142,7 +142,7 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('cancelarEdicion', () => {
-    it('debe cancelar el estado de edición', () => {
+    it('debe cancelar el estado de edicion', () => {
       component.editingId = 1;
       component.editingName = 'test';
 
@@ -154,7 +154,7 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('guardarEdicion', () => {
-    it('no debe guardar si el nombre está vacío', () => {
+    it('no debe guardar si el nombre esta vacio', () => {
       component.editingId = 1;
       component.editingName = '';
       component.editingEmail = 'test@example.com';
@@ -164,7 +164,7 @@ describe('PersonasCrudComponent', () => {
       expect(component.apiMessage).toContain('Ingrese un correo');
     });
 
-    it('no debe guardar si el correo es inválido', () => {
+    it('no debe guardar si el correo es invalido', () => {
       component.editingId = 1;
       component.editingName = 'Juan';
       component.editingEmail = 'invalid-email';
@@ -174,7 +174,7 @@ describe('PersonasCrudComponent', () => {
       expect(component.apiMessage).toContain('correo valido');
     });
 
-    it('debe guardar con datos válidos', (done) => {
+    it('debe guardar con datos validos', (done) => {
       component.editingId = 1;
       component.editingName = 'Juan Actualizado';
       component.editingEmail = 'juan.updated@example.com';
@@ -200,7 +200,7 @@ describe('PersonasCrudComponent', () => {
       }, 600);
     });
 
-    it('debe manejar error al guardar edición', () => {
+    it('debe manejar error al guardar edicion', () => {
       component.editingId = 1;
       component.editingName = 'Juan';
       component.editingEmail = 'juan@example.com';
@@ -223,7 +223,7 @@ describe('PersonasCrudComponent', () => {
       expect(personaService.delete).not.toHaveBeenCalled();
     });
 
-    it('no debe eliminar si el usuario cancela la confirmación', () => {
+    it('no debe eliminar si el usuario cancela la confirmacion', () => {
       spyOn(globalThis, 'confirm').and.returnValue(false);
       spyOn(personaService, 'delete');
 
@@ -267,22 +267,22 @@ describe('PersonasCrudComponent', () => {
       expect((component as any).esEmailValido('user.name@domain.co.uk')).toBe(true);
     });
 
-    it('debe rechazar email vacío o ausente', () => {
+    it('debe rechazar email vacio o ausente', () => {
       expect((component as any).esEmailValido('')).toBe(false);
     });
 
-    it('debe rechazar correos inválidos básicos', () => {
+    it('debe rechazar correos invalidos basicos', () => {
       expect((component as any).esEmailValido('invalido')).toBe(false);
       expect((component as any).esEmailValido('invalido@')).toBe(false);
       expect((component as any).esEmailValido('@example.com')).toBe(false);
     });
 
-    it('debe rechazar correos con espacios o más de un @', () => {
+    it('debe rechazar correos con espacios o mas de un @', () => {
       expect((component as any).esEmailValido('con espacio@domain.com')).toBe(false);
       expect((component as any).esEmailValido('uno@@dos.com')).toBe(false);
     });
 
-    it('debe rechazar dominios sin punto, labels vacíos o TLD corto', () => {
+    it('debe rechazar dominios sin punto, labels vacios o TLD corto', () => {
       expect((component as any).esEmailValido('user@dominio')).toBe(false);
       expect((component as any).esEmailValido('user@dominio..com')).toBe(false);
       expect((component as any).esEmailValido('user@dominio.c')).toBe(false);
@@ -301,7 +301,7 @@ describe('PersonasCrudComponent', () => {
 
   describe('limpiarMensaje', () => {
     it('debe limpiar mensajes que no contienen "Error"', fakeAsync(() => {
-      component.apiMessage = 'Operación exitosa';
+      component.apiMessage = 'Operacion exitosa';
       (component as any).limpiarMensaje();
       tick(3100);
       expect(component.apiMessage).toBe('');
@@ -329,6 +329,42 @@ describe('PersonasCrudComponent', () => {
     it('retorna fallback si no hay mensaje', () => {
       const result = (component as any).errorToMessage({}, 'fallback');
       expect(result).toBe('fallback');
+    });
+  });
+
+  describe('paginacion', () => {
+    it('no cambia de pagina si el indice es invalido', () => {
+      component.totalPages = 3;
+      component.pageIndex = 1;
+      spyOn(component, 'listarPersonas');
+
+      component.cambiarPagina(-1);
+      component.cambiarPagina(5);
+
+      expect(component.pageIndex).toBe(1);
+      expect(component.listarPersonas).not.toHaveBeenCalled();
+    });
+
+    it('cambia a pagina valida y lista personas', () => {
+      component.totalPages = 5;
+      spyOn(component, 'listarPersonas');
+
+      component.cambiarPagina(2);
+
+      expect(component.pageIndex).toBe(2);
+      expect(component.listarPersonas).toHaveBeenCalled();
+    });
+
+    it('avanza y retrocede pagina', () => {
+      component.totalPages = 3;
+      component.pageIndex = 1;
+      spyOn(component, 'listarPersonas');
+
+      component.siguiente();
+      component.anterior();
+
+      expect(component.pageIndex).toBe(1);
+      expect(component.listarPersonas).toHaveBeenCalledTimes(2);
     });
   });
 });

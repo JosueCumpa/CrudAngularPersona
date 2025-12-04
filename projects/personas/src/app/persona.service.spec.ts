@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+﻿import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { PersonaService, Persona } from './persona.service';
@@ -32,7 +32,7 @@ describe('PersonaService', () => {
     it('debe obtener todas las personas', () => {
       const mockPersonas: Persona[] = [
         { id: 1, nombre: 'Juan', email: 'juan@example.com' },
-        { id: 2, nombre: 'María', email: 'maria@example.com' }
+        { id: 2, nombre: 'Maria', email: 'maria@example.com' }
       ];
 
       service.getAll().subscribe({
