@@ -75,4 +75,15 @@ describe('NavigationComponent', () => {
     dropdownA.remove();
     dropdownB.remove();
   });
+
+  it('should no-op when toggleDropdown has no nav-dropdown sibling', () => {
+    const link = document.createElement('a');
+    const event = {
+      currentTarget: link,
+      stopPropagation: jasmine.createSpy('stopPropagation'),
+    } as unknown as Event;
+
+    expect(() => component.toggleDropdown(event)).not.toThrow();
+    expect(event.stopPropagation).toHaveBeenCalled();
+  });
 });

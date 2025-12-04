@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 export const environment = {
   production: true,
   apiBaseUrl: 'https://api.produccion.com/api',

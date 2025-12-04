@@ -79,7 +79,7 @@ describe('PersonaService', () => {
   describe('create', () => {
     it('debe crear una nueva persona', () => {
       const newPersona: Persona = { nombre: 'Carlos', email: 'carlos@example.com' };
-      const response = 'Persona creada exitosamente';
+      const response: Persona = { id: 1, ...newPersona };
 
       service.create(newPersona).subscribe({
         next: (result) => {
@@ -111,7 +111,7 @@ describe('PersonaService', () => {
   describe('update', () => {
     it('debe actualizar una persona', () => {
       const updatedPersona: Persona = { id: 1, nombre: 'Juan Actualizado', email: 'juan.new@example.com' };
-      const response = 'Persona actualizada exitosamente';
+      const response: Persona = updatedPersona;
 
       service.update(1, updatedPersona).subscribe({
         next: (result) => {

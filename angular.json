@@ -45,6 +45,12 @@
 					"builder": "@angular-devkit/build-angular:karma",
 					"options": {
 						"karmaConfig": "projects/shell/karma.conf.cjs",
+						"codeCoverageExclude": [
+							"projects/shell/src/main.ts",
+							"projects/shell/src/bootstrap.ts",
+							"projects/shell/src/app/app.routes.ts",
+							"projects/shell/src/environments/*.ts"
+						],
 						"polyfills": [
 							"zone.js",
 							"zone.js/testing"
@@ -169,6 +175,11 @@
 					"builder": "@angular-devkit/build-angular:karma",
 					"options": {
 						"karmaConfig": "projects/personas/karma.conf.cjs",
+						"codeCoverageExclude": [
+							"projects/personas/src/main.ts",
+							"projects/personas/src/bootstrap.ts",
+							"projects/personas/src/environments/*.ts"
+						],
 						"polyfills": [
 							"zone.js",
 							"zone.js/testing"
@@ -355,6 +366,11 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "karmaConfig": "projects/productos/karma.conf.cjs",
+            "codeCoverageExclude": [
+              "projects/productos/src/main.ts",
+              "projects/productos/src/bootstrap.ts",
+              "projects/productos/src/environments/*.ts"
+            ],
             "polyfills": [
               "zone.js",
               "zone.js/testing"

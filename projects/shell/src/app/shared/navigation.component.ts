@@ -27,11 +27,12 @@ export class NavigationComponent implements OnInit {
   }
 
   closeOtherDropdowns(current: Element) {
-    document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+    const dropdowns = Array.from(document.querySelectorAll('.nav-dropdown'));
+    for (const dropdown of dropdowns) {
       if (dropdown !== current) {
         dropdown.classList.remove('active');
       }
-    });
+    }
   }
 
   toggleNav() {
@@ -46,9 +47,10 @@ export class NavigationComponent implements OnInit {
 
   setupNavigation() {
     document.addEventListener('click', () => {
-      document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+      const dropdowns = Array.from(document.querySelectorAll('.nav-dropdown'));
+      for (const dropdown of dropdowns) {
         dropdown.classList.remove('active');
-      });
+      }
     });
   }
 }

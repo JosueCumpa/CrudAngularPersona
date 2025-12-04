@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import validator from 'validator';
-import { PersonaService, Persona } from '../persona.service';
+import { PersonaService, Persona, PersonaPage } from '../persona.service';
 
 @Component({
   selector: 'app-personas-crud',
@@ -14,6 +14,10 @@ import { PersonaService, Persona } from '../persona.service';
 })
 export class PersonasCrudComponent implements OnInit {
   persons: Persona[] = [];
+  pageSize = 5;
+  pageIndex = 0;
+  totalPages = 0;
+  totalElements = 0;
   newPersonName = '';
   newPersonEmail = '';
   apiMessage = '';
@@ -28,13 +32,15 @@ export class PersonasCrudComponent implements OnInit {
   }
 
   listarPersonas(): void {
-    this.personaService.getAll().subscribe({
-      next: (data) => {
-        this.persons = data;
+    this.personaService.getPage(this.pageIndex, this.pageSize).subscribe({
+      next: (page: PersonaPage) => {
+        this.persons = page.content;
+        this.totalPages = page.totalPages;
+        this.totalElements = page.totalElements;
         this.limpiarMensaje();
       },
       error: (err) => {
-        this.apiMessage = 'Error loading persons: ' + (err.error?.message || err.message);
+        this.apiMessage = this.errorToMessage(err, 'Error loading persons');
         console.error('Error loading:', err);
       }
     });
@@ -54,14 +60,14 @@ export class PersonasCrudComponent implements OnInit {
       email: this.newPersonEmail
     };
     this.personaService.create(newPerson).subscribe({
-      next: (response: string) => {
-        this.apiMessage = response;
+      next: () => {
+        this.apiMessage = 'Persona creada correctamente';
         this.newPersonName = '';
         this.newPersonEmail = '';
         setTimeout(() => this.listarPersonas(), 500);
       },
       error: (err) => {
-        this.apiMessage = err.error || 'Error al crear persona';
+        this.apiMessage = this.errorToMessage(err, 'Error al crear persona');
         console.error('Error creating:', err);
       }
     });
@@ -93,15 +99,15 @@ export class PersonasCrudComponent implements OnInit {
       email: this.editingEmail
     };
     this.personaService.update(this.editingId, updatedPerson).subscribe({
-      next: (response: string) => {
-        this.apiMessage = response;
+      next: () => {
+        this.apiMessage = 'Persona actualizada correctamente';
         this.editingId = null;
         this.editingName = '';
         this.editingEmail = '';
         setTimeout(() => this.listarPersonas(), 500);
       },
       error: (err) => {
-        this.apiMessage = err.error || 'Error al actualizar persona';
+        this.apiMessage = this.errorToMessage(err, 'Error al actualizar persona');
         console.error('Error updating:', err);
       }
     });
@@ -110,15 +116,31 @@ export class PersonasCrudComponent implements OnInit {
   eliminarPersona(id: number | undefined): void {
     if (!id || !confirm('¿Estás seguro de que deseas eliminar esta persona?')) return;
     this.personaService.delete(id).subscribe({
-      next: (response: string) => {
-        this.apiMessage = response;
+      next: () => {
+        this.apiMessage = 'Persona eliminada correctamente';
         setTimeout(() => this.listarPersonas(), 500);
       },
       error: (err) => {
-        this.apiMessage = err.error || 'Error al eliminar persona';
+        this.apiMessage = this.errorToMessage(err, 'Error al eliminar persona');
         console.error('Error deleting:', err);
       }
     });
+  }
+
+  cambiarPagina(page: number): void {
+    if (page < 0 || (this.totalPages && page >= this.totalPages)) {
+      return;
+    }
+    this.pageIndex = page;
+    this.listarPersonas();
+  }
+
+  siguiente(): void {
+    this.cambiarPagina(this.pageIndex + 1);
+  }
+
+  anterior(): void {
+    this.cambiarPagina(this.pageIndex - 1);
   }
 
   private limpiarMensaje(): void {
@@ -134,7 +156,6 @@ export class PersonasCrudComponent implements OnInit {
       return false;
     }
 
-    // Mitigar ReDoS: checks lineales sin regex costosas
     if (email.length > 254) {
       return false;
     }
@@ -155,7 +176,6 @@ export class PersonasCrudComponent implements OnInit {
       return false;
     }
 
-    // Límites de partes comunes en emails
     if (local.length > 64 || domain.length > 190) {
       return false;
     }
@@ -170,7 +190,24 @@ export class PersonasCrudComponent implements OnInit {
       return false;
     }
 
-    // Librería robusta para validación sintáctica
     return validator.isEmail(email, { allow_utf8_local_part: false });
+  }
+
+  private errorToMessage(err: unknown, fallback: string): string {
+    if (!err) return fallback;
+    const error = err as { error?: unknown; message?: unknown };
+    const candidates = [error?.error, error?.message];
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate;
+      }
+      if (candidate && typeof candidate === 'object' && 'message' in candidate) {
+        const msg = (candidate as { message?: unknown }).message;
+        if (typeof msg === 'string' && msg.trim()) {
+          return msg;
+        }
+      }
+    }
+    return fallback;
   }
 }

@@ -76,5 +76,15 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-slate-600">
+        Página {{ pageIndex + 1 }} de {{ totalPages || 1 }} — {{ totalElements }} registros
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" (click)="anterior()" [disabled]="pageIndex === 0">Anterior</button>
+        <button class="btn btn-secondary" (click)="siguiente()" [disabled]="pageIndex >= totalPages - 1 || totalPages === 0">Siguiente</button>
+      </div>
+    </div>
   </div>
 </div>

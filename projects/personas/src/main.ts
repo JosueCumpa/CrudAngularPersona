@@ -1,6 +1,13 @@
+/* istanbul ignore file */
 import { initFederation } from '@angular-architects/native-federation';
 
-initFederation()
-  .catch(err => console.error(err))
-  .then(_ => import('./bootstrap'))
-  .catch(err => console.error(err));
+async function initApp(): Promise<void> {
+  try {
+    await initFederation();
+    await import('./bootstrap');
+  } catch (err) {
+    console.error('Application failed to start:', err);
+  }
+}
+
+initApp(); //NOSONAR

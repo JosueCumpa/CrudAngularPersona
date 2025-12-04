@@ -3,13 +3,20 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "../../",
     "outDir": "../../out-tsc/spec",
+    "paths": {
+      "@angular-architects/native-federation": [
+        "./projects/shell/src/testing/native-federation.mock.ts"
+      ]
+    },
     "types": [
       "jasmine"
     ]
   },
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/testing/**/*.ts"
   ]
 }

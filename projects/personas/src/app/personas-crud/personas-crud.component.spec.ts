@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { PersonasCrudComponent } from './personas-crud.component';
 import { PersonaService, Persona } from '../persona.service';
@@ -34,27 +34,35 @@ describe('PersonasCrudComponent', () => {
   });
 
   describe('listarPersonas', () => {
-    it('debe cargar todas las personas', () => {
-      const mockPersonas: Persona[] = [
-        { id: 1, nombre: 'Juan', email: 'juan@example.com' },
-        { id: 2, nombre: 'María', email: 'maria@example.com' },
-      ];
+    it('debe cargar todas las personas paginadas', () => {
+      const page = {
+        content: [
+          { id: 1, nombre: 'Juan', email: 'juan@example.com' },
+          { id: 2, nombre: 'Maria', email: 'maria@example.com' },
+        ],
+        totalPages: 3,
+        totalElements: 12,
+        number: 0,
+        size: 5,
+      };
 
-      spyOn(personaService, 'getAll').and.returnValue(of(mockPersonas));
+      spyOn(personaService, 'getPage').and.returnValue(of(page as any));
 
       component.listarPersonas();
 
-      expect(component.persons).toEqual(mockPersonas);
-      expect(personaService.getAll).toHaveBeenCalled();
+      expect(component.persons).toEqual(page.content);
+      expect(component.totalPages).toBe(3);
+      expect(component.totalElements).toBe(12);
+      expect(personaService.getPage).toHaveBeenCalledWith(component.pageIndex, component.pageSize);
     });
 
     it('debe manejar error al cargar personas', () => {
       const error = { error: { message: 'Error del servidor' }, message: 'Http Error' };
-      spyOn(personaService, 'getAll').and.returnValue(throwError(() => error));
+      spyOn(personaService, 'getPage').and.returnValue(throwError(() => error));
 
       component.listarPersonas();
 
-      expect(component.apiMessage).toContain('Error loading persons');
+      expect(component.apiMessage).toBe('Error del servidor');
     });
   });
 
@@ -91,7 +99,7 @@ describe('PersonasCrudComponent', () => {
       component.newPersonEmail = 'carlos@example.com';
 
       const mockPersona: Persona = { nombre: 'Carlos', email: 'carlos@example.com' };
-      const response = 'Persona creada exitosamente';
+      const response: Persona = { id: 1, ...mockPersona };
 
       spyOn(personaService, 'create').and.returnValue(of(response));
       spyOn(component, 'listarPersonas');
@@ -176,7 +184,7 @@ describe('PersonasCrudComponent', () => {
         nombre: 'Juan Actualizado',
         email: 'juan.updated@example.com',
       };
-      const response = 'Persona actualizada exitosamente';
+      const response: Persona = updatedPersona;
 
       spyOn(personaService, 'update').and.returnValue(of(response));
       spyOn(component, 'listarPersonas');
@@ -190,6 +198,19 @@ describe('PersonasCrudComponent', () => {
         expect(component.listarPersonas).toHaveBeenCalled();
         done();
       }, 600);
+    });
+
+    it('debe manejar error al guardar edición', () => {
+      component.editingId = 1;
+      component.editingName = 'Juan';
+      component.editingEmail = 'juan@example.com';
+
+      const error = { error: 'Error al actualizar persona' };
+      spyOn(personaService, 'update').and.returnValue(throwError(() => error));
+
+      component.guardarEdicion();
+
+      expect(component.apiMessage).toBe('Error al actualizar persona');
     });
   });
 
@@ -246,6 +267,10 @@ describe('PersonasCrudComponent', () => {
       expect((component as any).esEmailValido('user.name@domain.co.uk')).toBe(true);
     });
 
+    it('debe rechazar email vacío o ausente', () => {
+      expect((component as any).esEmailValido('')).toBe(false);
+    });
+
     it('debe rechazar correos inválidos básicos', () => {
       expect((component as any).esEmailValido('invalido')).toBe(false);
       expect((component as any).esEmailValido('invalido@')).toBe(false);
@@ -288,5 +313,22 @@ describe('PersonasCrudComponent', () => {
       tick(3100);
       expect(component.apiMessage).toBe('Error al cargar');
     }));
+  });
+
+  describe('errorToMessage', () => {
+    it('retorna el message directo si es string', () => {
+      const result = (component as any).errorToMessage({ message: 'error directo' }, 'fallback');
+      expect(result).toBe('error directo');
+    });
+
+    it('retorna message anidado en error', () => {
+      const result = (component as any).errorToMessage({ error: { message: 'error anidado' } }, 'fallback');
+      expect(result).toBe('error anidado');
+    });
+
+    it('retorna fallback si no hay mensaje', () => {
+      const result = (component as any).errorToMessage({}, 'fallback');
+      expect(result).toBe('fallback');
+    });
   });
 });

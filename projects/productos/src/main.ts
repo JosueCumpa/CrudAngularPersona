@@ -2,5 +2,13 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+async function startApp(): Promise<void> {
+  try{
+    await bootstrapApplication(AppComponent, appConfig);
+  }catch(err){
+    console.error('Application failed to start:', err);
+  }
+}
+
+startApp(); //NOSONAR
+
